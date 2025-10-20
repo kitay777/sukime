@@ -1,6 +1,7 @@
 <script setup>
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { onMounted, onBeforeUnmount, ref, nextTick } from 'vue'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 
 const page = usePage()
 const conversation = page.props.conversation
@@ -43,6 +44,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <AuthenticatedLayout>
   <Head title="Chat" />
   <div class="max-w-4xl mx-auto p-4">
     <h1 class="text-xl font-semibold mb-3">
@@ -72,4 +74,5 @@ onBeforeUnmount(() => {
       </button>
     </form>
   </div>
+  </AuthenticatedLayout>
 </template>
