@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Crush;
 use App\Models\User;
+use App\Models\Oshi;   
 
 class CrushMatcher
 {
@@ -30,7 +31,7 @@ class CrushMatcher
         };
     }
 
-    public static function crushEqualsProfile(Crush $crush, User $user): bool
+    public static function crushEqualsProfile(Crush|Oshi $crush, User $user): bool
     {
         // users テーブルは統一済み（school/faculty/grade/gender）を想定
         $uSchool  = $user->school  ?? '';
