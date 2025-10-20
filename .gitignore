@@ -24,3 +24,6 @@ yarn-error.log
 storage
 tests
 docker-compose.yml
+.DS_Store
+resources/js/Pages/.DS_Store
+.DS_Store
