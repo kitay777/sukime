@@ -194,24 +194,59 @@ const delOshi = (id) => {
             <div class="mb-4 flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <div class="rounded-lg bg-indigo-100 px-2.5 py-1 text-xs font-bold text-indigo-700">OSHI</div>
-                <h3 class="text-lg font-bold text-gray-800">推し（人数制限なし!）</h3>
+                <h3 class="text-lg font-bold text-gray-800">推し..（人数制限なし!）</h3>
               </div>
               <button class="px-4 py-2 rounded-2xl text-white font-semibold shadow bg-gradient-to-br from-indigo-500 to-violet-500 hover:scale-105 active:scale-95 transition" @click="openOshi">追加する</button>
             </div>
 
-            <ul class="divide-y rounded-2xl border border-indigo-100">
-              <li v-for="o in oshiList" :key="o.id" class="flex items-center justify-between gap-4 p-4 hover:bg-indigo-50/50 transition">
-                <div class="min-w-0">
-                  <p class="font-medium text-gray-800 flex items-center gap-2">
-                    {{ o.name }}
-                    <span class="inline-block h-2.5 w-2.5 rounded-full" :class="o.exists ? 'bg-emerald-500' : 'bg-red-500'" :title="o.exists ? '存在を確認' : '未確認'"></span>
-                  </p>
-                  <p class="truncate text-sm text-gray-600">{{ o.school }}・{{ o.faculty }}・{{ o.grade }}・{{ o.gender }}</p>
-                </div>
-                <button type="button" class="text-xs px-3 py-1.5 rounded-xl border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm hover:shadow transition" @click.stop.prevent="delOshi(o.id)">削除</button>
-              </li>
-              <li v-if="!oshiList.length" class="p-6 text-center text-gray-500">まだ追加されていません。</li>
-            </ul>
+<ul class="divide-y rounded-xl border border-gray-100">
+  <li
+    v-for="o in oshiList"
+    :key="o.id"
+    class="flex items-center justify-between gap-4 p-4 hover:bg-indigo-50/30 transition"
+  >
+    <div class="min-w-0">
+      <p class="font-medium text-gray-800 flex items-center gap-2">
+        {{ o.name }}
+        <span class="inline-block h-2.5 w-2.5 rounded-full" :class="o.exists ? 'bg-green-500' : 'bg-red-500'"></span>
+      </p>
+      <p class="truncate text-sm text-gray-600">
+        {{ o.school }}・{{ o.faculty }}・{{ o.grade }}・{{ o.gender }}
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <!-- ★ 推しごとガチャ -->
+      <Link
+        v-if="balance >= 100"
+        :href="route('gacha.play', { paid: 1, oshi_id: o.id, scope: 'oshi' })"
+        class="text-xs px-3 py-1.5 rounded-lg text-white bg-rose-500 hover:bg-rose-600 shadow"
+        title="この推しでガチャ（100pt）"
+      >
+        🎰 この推しでガチャ
+      </Link>
+      <Link
+        v-else
+        :href="route('points.dashboard')"
+        class="text-xs px-3 py-1.5 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow"
+        title="ポイント不足（100pt必要）"
+      >
+        💰 チャージ
+      </Link>
+
+      <!-- 既存：削除 -->
+      <button
+        type="button"
+        class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-white shadow-sm hover:shadow transition"
+        @click.stop.prevent="delOshi(o.id)"
+      >
+        削除
+      </button>
+    </div>
+  </li>
+  <li v-if="!oshiList.length" class="p-6 text-center text-gray-500">まだ追加されていません。</li>
+</ul>
+
 
             <!-- Counters (維持) -->
             <div class="mt-6 grid grid-cols-2 gap-4">

@@ -3,21 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Oshi;
 use App\Models\UserGacha;
 use App\Models\PointTransaction;
 use App\Models\Question;
-use App\Models\UserQuestionAnswer; // ★ここ
+use App\Models\UserQuestionAnswer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use App\Support\CrushMatcher;
 use App\Notifications\MutualLoveNotification;
 
 class GachaController extends Controller
 {
     public function play(Request $request)
     {
-        $user   = $request->user();
-        $isPaid = $request->boolean('paid');
+        $user    = $request->user();
+        $isPaid  = $request->boolean('paid');
+        $oshiId  = $request->input('oshi_id'); // ★ 推しごとのガチャ用
+        $scope   = $request->input('scope');   // 任意（ログ用途）
 
         // 残高
         $balance = (int) PointTransaction::where('user_id', $user->id)->sum('amount');
@@ -44,7 +48,7 @@ class GachaController extends Controller
                     'user_id' => $user->id,
                     'amount'  => -$cost,
                     'type'    => 'spend',
-                    'reason'  => 'gacha_paid_crush',
+                    'reason'  => 'gacha_paid',
                 ]);
             });
             $balance -= $cost;
@@ -70,32 +74,58 @@ class GachaController extends Controller
             'is_win'     => $isWin,
         ]);
 
-        // ===== レア度に応じた質問 → 回答抽選 =====
-        $question = $this->pickQuestionByRarity($rarity);
+        // ===== 対象ユーザー特定（推しごとガチャ）=====
+        $targetUser = null;
+        if ($oshiId) {
+            $oshi = Oshi::where('user_id', $user->id)->find($oshiId); // 権限ガード
+            if ($oshi) {
+                // 自分以外でプロフィール一致する候補から1人（複数ならランダム）
+                $candidates = User::query()
+                    ->where('id', '!=', $user->id)
+                    ->get(['id','name','school','faculty','grade','gender'])
+                    ->filter(fn(User $u) => CrushMatcher::crushEqualsProfile($oshi, $u));
 
-        $answerUser = null;
+                if ($candidates->count() > 0) {
+                    $targetUser = $candidates->random(); // ランダム1人
+                }
+            }
+        }
+
+        // ===== レア度に応じた質問 → 回答抽選 =====
+        $question   = $this->pickQuestionByRarity($rarity);
         $answerText = null;
+        $answerFrom = null;
 
         if ($question) {
-            // ① favorite が回答済みなら最優先
-            if ($user->favorite_user_id) {
+            // ① 推しターゲットの回答を最優先
+            if ($targetUser) {
+                $ans = UserQuestionAnswer::where('user_id', $targetUser->id)
+                    ->where('question_id', $question->id)
+                    ->first();
+                if ($ans) {
+                    $answerText = $ans->answer;
+                    $answerFrom = $targetUser;
+                }
+            }
+            // ② favorite の回答
+            if (!$answerText && $user->favorite_user_id) {
                 $favAns = UserQuestionAnswer::where('user_id', $user->favorite_user_id)
                     ->where('question_id', $question->id)
                     ->first();
                 if ($favAns) {
-                    $answerUser = User::find($favAns->user_id);
-                    $answerText = $favAns->answer; // ← answer カラム
+                    $answerText = $favAns->answer;
+                    $answerFrom = User::find($favAns->user_id);
                 }
             }
-            // ② ランダム他ユーザーの回答
+            // ③ ランダム他ユーザー回答
             if (!$answerText) {
                 $randAns = UserQuestionAnswer::where('question_id', $question->id)
                     ->where('user_id', '!=', $user->id)
                     ->inRandomOrder()
                     ->first();
                 if ($randAns) {
-                    $answerUser = User::find($randAns->user_id);
                     $answerText = $randAns->answer;
+                    $answerFrom = User::find($randAns->user_id);
                 }
             }
         }
@@ -105,12 +135,15 @@ class GachaController extends Controller
             'isWin'    => $isWin,
             'favorite' => $favorite ? ['id'=>$favorite->id,'name'=>$favorite->name] : null,
             'balance'  => $balance,
+            // Q&A
             'qa'       => $question ? [
                 'question_id'   => $question->id,
-                'question_text' => $question->content,
-                'answer'        => $answerText,   // ← フロントは qa.answer で参照
-                'answer_user'   => $answerUser ? ['id'=>$answerUser->id,'name'=>$answerUser->name] : null,
+                'question_text' => $question->content,  // ← columns: content
+                'answer'        => $answerText,         // ← columns: answer
+                'answer_user'   => $answerFrom ? ['id'=>$answerFrom->id,'name'=>$answerFrom->name] : null,
             ] : null,
+            // 画面表示用：対象推し/ユーザー
+            'target'   => $targetUser ? ['id'=>$targetUser->id,'name'=>$targetUser->name] : null,
         ]);
     }
 
@@ -135,7 +168,7 @@ class GachaController extends Controller
         };
 
         foreach ($tiers as $tier) {
-            $q = Question::where('is_active', true)
+            $q = Question::where('is_active', 1)
                 ->where('rarity', $tier)
                 ->inRandomOrder()
                 ->first();
