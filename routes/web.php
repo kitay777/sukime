@@ -23,6 +23,18 @@ use App\Http\Controllers\PointController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+// routes/web.php
+use App\Http\Controllers\TweetController;
+
+Route::middleware(['auth','verified'])->group(function () {
+    Route::get('/tweets', [TweetController::class, 'index'])->name('tweets.index');
+    Route::get('/tweets/{tweet}', [TweetController::class, 'show'])->name('tweets.show');
+    Route::post('/tweets', [TweetController::class, 'store'])->name('tweets.store');
+    Route::post('/tweets/{tweet}/unlock', [TweetController::class, 'unlock'])->name('tweets.unlock');
+
+    // private配信用（署名付き）
+    Route::get('/tweet-media/stream', [TweetController::class, 'stream'])->name('tweet.media.stream');
+});
 
 
 // routes/web.php の先頭あたりに一時追加（テスト後に削除）

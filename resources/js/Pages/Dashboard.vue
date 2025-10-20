@@ -88,18 +88,29 @@ const delOshi = (id) => {
           </div>
 
           <!-- Desktop: balance + actions -->
-          <div class="hidden sm:flex items-center gap-3">
-            <div class="rounded-2xl border-2 border-emerald-300 bg-white/85 px-4 py-2">
-              <div class="text-[11px] text-gray-600">現在のポイント</div>
-              <div class="text-lg font-black text-emerald-600">{{ balance.toLocaleString() }}<span class="text-xs"> pt</span></div>
-            </div>
-            <Link :href="route('points.dashboard')" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition">
-              💰 チャージ
-            </Link>
-            <Link :href="route('gacha.play')" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition animate-pulse">
-              💖 恋ガチャ
-            </Link>
-          </div>
+<div class="hidden sm:flex items-center gap-3">
+  <div class="rounded-2xl border-2 border-emerald-300 bg-white/85 px-4 py-2">
+    <div class="text-[11px] text-gray-600">現在のポイント</div>
+    <div class="text-lg font-black text-emerald-600">{{ balance.toLocaleString() }}<span class="text-xs"> pt</span></div>
+  </div>
+
+  <!-- ★ ツイートを書く -->
+  <Link
+    :href="route('tweets.index')"
+    class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition"
+    title="ツイートを投稿する"
+  >
+    📝 ツイートを書く
+  </Link>
+
+  <Link :href="route('points.dashboard')" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition">
+    💰 チャージ
+  </Link>
+  <Link :href="route('gacha.play')" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition animate-pulse">
+    💖 恋ガチャ
+  </Link>
+</div>
+
         </div>
 
         <!-- Mobile: balance + buttons (復活) -->
@@ -108,10 +119,16 @@ const delOshi = (id) => {
             <div class="text-[11px] text-gray-600">現在のポイント</div>
             <div class="text-xl font-black text-emerald-600">{{ balance.toLocaleString() }}<span class="text-xs"> pt</span></div>
           </div>
-          <div class="flex gap-3">
-            <Link :href="route('points.dashboard')" class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition">💰 チャージ</Link>
-            <Link :href="route('gacha.play')" class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition">💖 恋ガチャ</Link>
-          </div>
+<div class="flex gap-3">
+  <Link :href="route('points.dashboard')" class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition">💰 チャージ</Link>
+
+  <!-- ★ ツイートを書く -->
+  <Link :href="route('tweets.index')" class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition">
+    📝 ツイートを書く
+  </Link>
+
+  <Link :href="route('gacha.play')" class="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-500 px-4 py-2 text-white shadow hover:scale-105 active:scale-95 transition">💖 恋ガチャ</Link>
+</div>
         </div>
       </div>
     </template>
@@ -215,34 +232,44 @@ const delOshi = (id) => {
       </p>
     </div>
 
-    <div class="flex items-center gap-2 shrink-0">
-      <!-- ★ 推しごとガチャ -->
-      <Link
-        v-if="balance >= 100"
-        :href="route('gacha.play', { paid: 1, oshi_id: o.id, scope: 'oshi' })"
-        class="text-xs px-3 py-1.5 rounded-lg text-white bg-rose-500 hover:bg-rose-600 shadow"
-        title="この推しでガチャ（100pt）"
-      >
-        🎰 この推しでガチャ
-      </Link>
-      <Link
-        v-else
-        :href="route('points.dashboard')"
-        class="text-xs px-3 py-1.5 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow"
-        title="ポイント不足（100pt必要）"
-      >
-        💰 チャージ
-      </Link>
+<div class="flex items-center gap-2 shrink-0">
+  <!-- ★ 推しごとツイート一覧 -->
+  <Link
+    :href="route('tweets.index', { oshi_id: o.id })"
+    class="text-xs px-3 py-1.5 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow"
+    title="この推しの投稿一覧を見る"
+  >
+    📜 この推しのツイート
+  </Link>
 
-      <!-- 既存：削除 -->
-      <button
-        type="button"
-        class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-white shadow-sm hover:shadow transition"
-        @click.stop.prevent="delOshi(o.id)"
-      >
-        削除
-      </button>
-    </div>
+  <!-- 既存：推しごとガチャ -->
+  <Link
+    v-if="balance >= 100"
+    :href="route('gacha.play', { paid: 1, oshi_id: o.id, scope: 'oshi' })"
+    class="text-xs px-3 py-1.5 rounded-lg text-white bg-rose-500 hover:bg-rose-600 shadow"
+    title="この推しでガチャ（100pt）"
+  >
+    🎰 この推しでガチャ
+  </Link>
+  <Link
+    v-else
+    :href="route('points.dashboard')"
+    class="text-xs px-3 py-1.5 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow"
+    title="ポイント不足（100pt必要）"
+  >
+    💰 チャージ
+  </Link>
+
+  <!-- 既存：削除 -->
+  <button
+    type="button"
+    class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-white shadow-sm hover:shadow transition"
+    @click.stop.prevent="delOshi(o.id)"
+  >
+    削除
+  </button>
+</div>
+
   </li>
   <li v-if="!oshiList.length" class="p-6 text-center text-gray-500">まだ追加されていません。</li>
 </ul>

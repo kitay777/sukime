@@ -46,6 +46,12 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        'private' => [                       // ★ 追加
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'visibility' => 'private',
+            'throw' => false,
+        ],
 
         's3' => [
             'driver' => 's3',
